@@ -121,6 +121,22 @@ gen_random() {
   echo "${s:0:32}"
 }
 
+gen_sk_api_key() {
+  local base=""
+  if command -v openssl >/dev/null 2>&1; then
+    base=$(openssl rand -base64 96 2>/dev/null | tr -dc 'A-Za-z0-9' | head -c 48 || true)
+  fi
+  if [[ -z "$base" && -r /dev/urandom ]]; then
+    base=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 48 || true)
+  fi
+  while [[ ${#base} -lt 48 ]]; do
+    base+="$(gen_random)"
+    base=$(echo -n "$base" | tr -dc 'A-Za-z0-9')
+    base="${base:0:48}"
+  done
+  echo "sk-${base:0:48}"
+}
+
 gen_strong_password_32() {
   local base=""
   if [[ -r /dev/urandom ]]; then
@@ -180,8 +196,8 @@ main() {
 
   # Seed minimal config files if absent (do not overwrite existing).
   if [[ ! -f "$configs_dir/config.json" ]]; then
-    info "Generating API key (REQUIRED_API_KEY)..."
-    api_key="$(gen_random)"
+    info "Generating API key (REQUIRED_API_KEY, sk-*)..."
+    api_key="$(gen_sk_api_key)"
     if [[ -z "$api_key" ]]; then
       err "Failed to generate API key."
       exit 1

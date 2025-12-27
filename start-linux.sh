@@ -21,6 +21,22 @@ gen_random_32() {
   echo "${s:0:32}"
 }
 
+gen_sk_api_key() {
+  local base=""
+  if command -v openssl >/dev/null 2>&1; then
+    base=$(openssl rand -base64 96 2>/dev/null | tr -dc 'A-Za-z0-9' | head -c 48 || true)
+  fi
+  if [[ -z "$base" && -r /dev/urandom ]]; then
+    base=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom 2>/dev/null | head -c 48 || true)
+  fi
+  while [[ ${#base} -lt 48 ]]; do
+    base+="$(gen_random_32)"
+    base=$(echo -n "$base" | tr -dc 'A-Za-z0-9')
+    base="${base:0:48}"
+  done
+  echo "sk-${base:0:48}"
+}
+
 gen_strong_password_32() {
   # 32 chars, must include upper+lower+digit; no spaces.
   local base=""
@@ -106,7 +122,7 @@ created_admin_pwd=""
 
 # Production-safe configs initialization (no example data, no hard-coded weak passwords).
 if [[ ! -f "$CONFIGS_DIR/config.json" ]]; then
-  created_api_key="$(gen_random_32)"
+  created_api_key="$(gen_sk_api_key)"
   cat >"$CONFIGS_DIR/config.json" <<EOF
 {
   "REQUIRED_API_KEY": "${created_api_key}",
