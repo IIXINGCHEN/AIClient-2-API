@@ -2,6 +2,8 @@
 # 选择20-alpine版本以满足undici包的要求（需要Node.js >=20.18.1）
 FROM node:20-alpine
 
+ENV NODE_ENV=production
+
 # 设置标签
 LABEL maintainer="AIClient2API Team"
 LABEL description="Docker image for AIClient2API server"
@@ -15,7 +17,7 @@ COPY package*.json ./
 # 安装依赖
 # 使用--production标志只安装生产依赖，减小镜像大小
 # 使用--omit=dev来排除开发依赖
-RUN npm install 
+RUN npm ci --omit=dev
 
 # 复制源代码
 COPY . .

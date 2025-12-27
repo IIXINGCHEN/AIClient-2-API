@@ -1,0 +1,15 @@
+services:
+  aiclient2api:
+    image: "justlikemaki/aiclient-2-api:${AICLIENT2API_TAG:-2.2.12}"
+    container_name: "${CONTAINER_NAME:-aiclient2api}"
+    restart: always
+    init: true
+    ports:
+      - "${BIND_ADDR:-127.0.0.1}:${HOST_PORT:-3009}:3000"
+    volumes:
+      - "${CONFIGS_DIR:-./configs}:/app/configs"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

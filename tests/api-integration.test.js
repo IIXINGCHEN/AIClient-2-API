@@ -15,8 +15,12 @@ import { fetch } from 'undici';
  */
 
 // Test server configuration
-const TEST_SERVER_BASE_URL = 'http://192.168.1.232:3000';
-const TEST_API_KEY = '123456'; // You may need to adjust this based on your server config
+const TEST_SERVER_BASE_URL = process.env.TEST_SERVER_BASE_URL || 'http://127.0.0.1:3000';
+const TEST_API_KEY = process.env.TEST_API_KEY || '123456'; // Must match server config
+const SHOULD_RUN_INTEGRATION_TESTS =
+    process.env.RUN_INTEGRATION_TESTS === '1' ||
+    process.env.RUN_INTEGRATION_TESTS === 'true' ||
+    process.env.RUN_INTEGRATION_TESTS === 'yes';
 const MODEL_PROVIDER = {
     // Model provider constants
     GEMINI_CLI: 'gemini-cli-oauth',
@@ -79,7 +83,8 @@ const REAL_TEST_DATA = {
 
 // To run all integration tests:
 // npx jest ./tests/api-integration.test.js
-describe('API Integration Tests with HTTP Requests', () => {
+const describeIntegration = SHOULD_RUN_INTEGRATION_TESTS ? describe : describe.skip;
+describeIntegration('API Integration Tests with HTTP Requests', () => {
     beforeAll(async () => {
         // Test server connectivity
         try {
