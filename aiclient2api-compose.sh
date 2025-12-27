@@ -228,7 +228,8 @@ EOF
     chmod 600 "$configs_dir/provider_pools.json" || true
   fi
 
-  if [[ ! -f "$configs_dir/pwd" ]]; then
+  # Create/repair admin password file if missing or empty.
+  if [[ ! -s "$configs_dir/pwd" ]]; then
     local admin_pwd
     admin_pwd="$(gen_strong_password_32)"
     echo "${admin_pwd}" >"$configs_dir/pwd"

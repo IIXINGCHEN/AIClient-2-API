@@ -144,7 +144,8 @@ if [[ ! -f "$CONFIGS_DIR/provider_pools.json" ]]; then
   chmod 600 "$CONFIGS_DIR/provider_pools.json" || true
 fi
 
-if [[ ! -f "$CONFIGS_DIR/pwd" ]]; then
+ # Create/repair admin password file if missing or empty.
+if [[ ! -s "$CONFIGS_DIR/pwd" ]]; then
   created_admin_pwd="$(gen_strong_password_32)"
   echo "${created_admin_pwd}" >"$CONFIGS_DIR/pwd"
   chmod 600 "$CONFIGS_DIR/pwd" || true

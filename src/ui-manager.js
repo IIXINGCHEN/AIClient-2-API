@@ -201,9 +201,20 @@ async function cleanupExpiredTokens() {
 }
 
 /**
- * 默认密码（当pwd文件不存在时使用）
+ * 生成安全的管理员密码
  */
-const DEFAULT_PASSWORD = 'admin123';
+function generateStrongAdminPassword() {
+    // 32 chars, must include upper+lower+digit; no spaces.
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const bytes = crypto.randomBytes(32);
+    let base = '';
+    for (let i = 0; i < 28; i++) {
+        base += alphabet[bytes[i] % alphabet.length];
+    }
+    return `${base}Aa0B`.slice(0, 32);
+}
+
+let passwordInitPromise = null;
 
 /**
  * 读取密码文件内容
@@ -215,22 +226,44 @@ async function readPasswordFile() {
         // 使用异步方式检查文件是否存在并读取，避免竞态条件
         const password = await fs.readFile(pwdFilePath, 'utf8');
         const trimmedPassword = password.trim();
-        // 如果密码文件为空，使用默认密码
+        // 如果密码文件为空，生成并写入一个强密码
         if (!trimmedPassword) {
-            console.log('[Auth] 密码文件为空，使用默认密码: ' + DEFAULT_PASSWORD);
-            return DEFAULT_PASSWORD;
+            console.warn('[Auth] 密码文件为空，将生成新的强密码并写入 configs/pwd');
+            throw Object.assign(new Error('Empty password file'), { code: 'EMPTY_PWD' });
         }
         console.log('[Auth] 成功读取密码文件');
         return trimmedPassword;
     } catch (error) {
-        // ENOENT 表示文件不存在，这是正常情况
-        if (error.code === 'ENOENT') {
-            console.log('[Auth] 密码文件不存在，使用默认密码: ' + DEFAULT_PASSWORD);
-        } else {
+        if (error.code !== 'ENOENT' && error.code !== 'EMPTY_PWD') {
             console.error('[Auth] 读取密码文件失败:', error.code || error.message);
-            console.log('[Auth] 使用默认密码: ' + DEFAULT_PASSWORD);
         }
-        return DEFAULT_PASSWORD;
+
+        // 防止并发请求重复生成密码
+        if (!passwordInitPromise) {
+            passwordInitPromise = (async () => {
+                const newPassword = generateStrongAdminPassword();
+                try {
+                    await fs.mkdir(path.dirname(pwdFilePath), { recursive: true });
+                    await fs.writeFile(pwdFilePath, newPassword, { encoding: 'utf8', mode: 0o600 });
+                    try {
+                        await fs.chmod(pwdFilePath, 0o600);
+                    } catch {
+                        // ignore on platforms that don't support chmod
+                    }
+                    console.log('[Auth] 已生成新的管理员密码并保存到 configs/pwd');
+                } catch (writeErr) {
+                    console.error('[Auth] 无法写入 configs/pwd，请检查 configs 目录权限:', writeErr.code || writeErr.message);
+                    console.error(`[Auth] 临时管理员密码(请尽快通过 /api/admin-password 设置并确保可持久化): ${newPassword}`);
+                }
+                return newPassword;
+            })();
+        }
+
+        try {
+            return await passwordInitPromise;
+        } finally {
+            passwordInitPromise = null;
+        }
     }
 }
 
@@ -590,7 +623,12 @@ export async function handleUIApiRequests(method, pathParam, req, res, currentCo
 
             // 写入密码到 pwd 文件
             const pwdFilePath = path.join(process.cwd(), 'configs', 'pwd');
-            await fs.writeFile(pwdFilePath, password.trim(), 'utf8');
+            await fs.writeFile(pwdFilePath, password.trim(), { encoding: 'utf8', mode: 0o600 });
+            try {
+                await fs.chmod(pwdFilePath, 0o600);
+            } catch {
+                // ignore on platforms that don't support chmod
+            }
             
             console.log('[UI API] Admin password updated successfully');
 
