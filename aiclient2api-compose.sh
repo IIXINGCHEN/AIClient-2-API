@@ -27,7 +27,7 @@ Options:
   --port PORT        Host port to publish (default: 3009)
   --tag TAG          Image tag (default: latest). Accepts v-prefixed tags too.
   --name NAME        Container name (default: aiclient2api)
-  --configs-dir DIR  Host configs directory to mount to /app/configs (default: ./configs)
+  --configs-dir DIR  Host configs directory to mount to /app/configs (default: <script_dir>/configs)
   --overwrite        Overwrite existing docker-compose.yml
   --no-pull          Do not pull image
   --up               Start in background after generating (docker compose up -d)
@@ -149,11 +149,14 @@ gen_strong_password_32() {
 }
 
 main() {
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
   local bind_addr="127.0.0.1"
   local host_port="3009"
   local tag="latest"
   local container_name="aiclient2api"
-  local configs_dir="./configs"
+  local configs_dir="${script_dir}/configs"
   local overwrite=0
   local no_pull=0
   local do_up=0
