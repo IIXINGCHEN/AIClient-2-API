@@ -1,6 +1,6 @@
 services:
   aiclient2api:
-    image: "justlikemaki/aiclient-2-api:${AICLIENT2API_TAG:-2.2.12}"
+    image: "justlikemaki/aiclient-2-api:${AICLIENT2API_TAG:-latest}"
     container_name: "${CONTAINER_NAME:-aiclient2api}"
     restart: always
     init: true

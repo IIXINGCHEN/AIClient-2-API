@@ -25,7 +25,7 @@ Usage:
 Options:
   --bind ADDR        Host bind address for port mapping (default: 127.0.0.1)
   --port PORT        Host port to publish (default: 3009)
-  --tag TAG          Image tag (default: 2.2.12). Accepts v-prefixed tags too.
+  --tag TAG          Image tag (default: latest). Accepts v-prefixed tags too.
   --name NAME        Container name (default: aiclient2api)
   --configs-dir DIR  Host configs directory to mount to /app/configs (default: ./configs)
   --overwrite        Overwrite existing docker-compose.yml
@@ -135,7 +135,7 @@ gen_strong_password_32() {
 main() {
   local bind_addr="127.0.0.1"
   local host_port="3009"
-  local tag="2.2.12"
+  local tag="latest"
   local container_name="aiclient2api"
   local configs_dir="./configs"
   local overwrite=0

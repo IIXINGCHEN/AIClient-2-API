@@ -43,7 +43,7 @@ Usage:
 Examples:
   ./start-linux.sh --configs-dir /opt/data/aiclient2api/configs --port 3009 --name aiclient2api-02
   ./start-linux.sh --configs-dir /opt/data/aiclient2api/configs --port 3009 --bind 127.0.0.1
-  AICLIENT2API_TAG=v2.2.12 HOST_PORT=3009 BIND_ADDR=127.0.0.1 CONFIGS_DIR=/opt/aiclient/configs ./start-linux.sh
+  AICLIENT2API_TAG=latest HOST_PORT=3009 BIND_ADDR=127.0.0.1 CONFIGS_DIR=/opt/aiclient/configs ./start-linux.sh
 EOF
 }
 
@@ -53,7 +53,7 @@ cd "$ROOT_DIR"
 CONFIGS_DIR="${CONFIGS_DIR:-$ROOT_DIR/configs}"
 HOST_PORT="${HOST_PORT:-3009}"
 BIND_ADDR="${BIND_ADDR:-127.0.0.1}"
-AICLIENT2API_TAG="${AICLIENT2API_TAG:-2.2.12}"
+AICLIENT2API_TAG="${AICLIENT2API_TAG:-latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-aiclient2api}"
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-aiclient-2-api}"
 NO_PULL=0
